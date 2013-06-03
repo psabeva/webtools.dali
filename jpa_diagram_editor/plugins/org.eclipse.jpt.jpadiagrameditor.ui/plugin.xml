@@ -120,6 +120,11 @@
 					     property="org.eclipse.wst.common.project.facet.core.projectFacet"
 					     value="jpt.jpa:2.0">
 					</test>
+					<test
+					     forcePluginActivation="true"
+					     property="org.eclipse.wst.common.project.facet.core.projectFacet"
+					     value="jpt.jpa:2.1">
+					</test>
 				  </or>	
 		        </adapt> 
 			</enabledWhen>         
@@ -172,5 +177,68 @@
           type="org.eclipse.jpt.jpa.ui.JpaContextModelRootModel">
     </propertyTester>
 </extension>
+
+<extension
+        point="org.eclipse.ltk.core.refactoring.renameParticipants">
+
+        <renameParticipant
+    		class="org.eclipse.jpt.jpadiagrameditor.ui.internal.refactoring.JptPictogramElementRenameParticipant"
+    		id="org.eclipse.jpt.jpa.core.ltk.renameEntityPictogramElement"
+    		name="%JPA_RENAME_TYPE_PARTICIPANT_NAME">
+    		<enablement>
+    			<with variable="element">
+    				<instanceof value="org.eclipse.jdt.core.IType"/>
+					<adapt type="org.eclipse.core.resources.IResource">
+						<reference definitionId="org.eclipse.jpt.jpa.reference.anyJpaFacetedReferencingProjects"/>
+					</adapt>
+   				</with>
+    		</enablement>
+        </renameParticipant>
+        <renameParticipant
+    		class="org.eclipse.jpt.jpadiagrameditor.ui.internal.refactoring.AttributePictogramElementRenameParticipant"
+    		id="org.eclipse.jpt.jpa.core.ltk.renameAttributePictogramElement"
+    		name="%JPA_RENAME_TYPE_PARTICIPANT_NAME">
+    		<enablement>
+    			<with variable="element">
+    				<instanceof value="org.eclipse.jdt.core.IField"/>
+					<adapt type="org.eclipse.core.resources.IResource">
+						<reference definitionId="org.eclipse.jpt.jpa.reference.anyJpaFacetedReferencingProjects"/>
+					</adapt>
+   				</with>
+    		</enablement>
+        </renameParticipant>
+</extension>
+
+<extension point="org.eclipse.core.expressions.definitions">
+		<!-- A test for determining whether an IProject has the JPA facet.
+			Force activation of the wst facet plug-in containing the property tester.
+			Possible usage:
+			<adapt type="org.eclipse.core.resources.IProject">
+				<reference definitionId="org.eclipse.jpt.jpa.reference.hasJpaFacet"/>
+			</adapt>
+		-->			
+		<definition id="org.eclipse.jpt.jpa.reference.hasJpaFacet">
+			<test
+				property="org.eclipse.wst.common.project.facet.core.projectFacet"
+				value="jpt.jpa"
+				forcePluginActivation="true"/>
+		</definition>
+		<!-- A test for determining whether an IResource's project or any referencing projects has the JPA facet.
+			Force activation of the org.eclipse.jpt.common.core plug-in containing the property tester.
+			Though in this case the property tester class is in a package that does not cause the plug-in to load.
+			So the class will be loaded, but the plug-in will not.
+			Possible usage:
+			<adapt type="org.eclipse.core.resources.IResource">
+				<reference definitionId="org.eclipse.jpt.jpa.reference.anyJpaFacetedReferencingProjects"/>
+			</adapt>
+		-->			
+		<definition id="org.eclipse.jpt.jpa.reference.anyJpaFacetedReferencingProjects">
+			<test
+				property="org.eclipse.jpt.common.core.anyFacetedReferencingProjects" 
+				value="jpt.jpa"
+				forcePluginActivation="true"/>
+		</definition>
+	</extension>
+
 
 </plugin>

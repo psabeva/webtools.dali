@@ -27,7 +27,10 @@ import org.eclipse.graphiti.features.context.IDeleteContext;
 import org.eclipse.graphiti.internal.features.context.impl.base.PictogramElementContext;
 import org.eclipse.graphiti.mm.algorithms.Text;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
+import org.eclipse.graphiti.ui.editor.IDiagramContainerUI;
 import org.eclipse.graphiti.ui.features.DefaultDeleteFeature;
+import org.eclipse.jdt.internal.ui.refactoring.reorg.DeleteAction;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jpt.common.ui.internal.utility.SynchronousUiCommandContext;
 import org.eclipse.jpt.common.utility.command.Command;
 import org.eclipse.jpt.jpa.core.JpaProjectManager;
@@ -44,6 +47,7 @@ import org.eclipse.jpt.jpadiagrameditor.ui.internal.i18n.JPAEditorMessages;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.provider.IJPAEditorFeatureProvider;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorUtil;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JpaArtifactFactory;
+import org.eclipse.ui.IWorkbenchSite;
 
 
 
@@ -74,6 +78,11 @@ public class ClickRemoveAttributeButtonFeature extends DefaultDeleteFeature {
 	private void deleteAttribute(ContainerShape pe, String attrName) {
 		PersistentType jpt = (PersistentType)getFeatureProvider().getBusinessObjectForPictogramElement(pe.getContainer().getContainer());
 		deleteFieldFromCompositePKClass(attrName, jpt);
+		
+//		IWorkbenchSite ws = ((IDiagramContainerUI)getFeatureProvider().getDiagramTypeProvider().getDiagramBehavior().getDiagramContainer()).getSite();
+//		DeleteAction action = new DeleteAction(ws);
+//		action.run(new StructuredSelection(jpt.getAttributeNamed(attrName)));
+		
 		JpaArtifactFactory.instance().deleteAttribute(jpt, attrName, getFeatureProvider());
 	}
 	

@@ -277,6 +277,10 @@ public class JPAEditorUtil {
 			return null;
     	PersistenceUnit pu = JpaArtifactFactory.instance().getPersistenceUnit(proj);
     	PersistentType pt = pu.getPersistentType(name);
+    	
+    	if(pt == null) {
+    		pt = JpaArtifactFactory.instance().getJPT(name, pu);
+    	}
     	return pt;
     }
     
@@ -977,8 +981,7 @@ public class JPAEditorUtil {
 	
 	static public void formatCode(ICompilationUnit cu, IWorkbenchSite ws) {
 		FormatAllAction action = new FormatAllAction(ws);
-		if(cu != null)
-			action.run(new StructuredSelection(cu));
+		action.run(new StructuredSelection(cu));
 	}
 	
 	static public String generateUniquePersistentObjectName(JpaProject jpaProject, String pack, String objectTypeName, IJPAEditorFeatureProvider fp){
@@ -1317,7 +1320,9 @@ public class JPAEditorUtil {
     }
     
 	static public boolean checkJPAFacetVersion(JpaProject jpaProject, String version) {
-		return checkJPAFacetVersion(jpaProject.getProject(), version);
+		if(jpaProject != null)
+			return checkJPAFacetVersion(jpaProject.getProject(), version);
+		return false;
 	}	
 	
 	

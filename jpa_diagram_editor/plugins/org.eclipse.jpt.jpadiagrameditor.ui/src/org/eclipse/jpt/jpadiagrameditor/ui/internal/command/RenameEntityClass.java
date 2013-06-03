@@ -20,11 +20,9 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.refactoring.IJavaRefactorings;
 import org.eclipse.jdt.core.refactoring.descriptors.RenameJavaElementDescriptor;
 import org.eclipse.jdt.ui.refactoring.RenameSupport;
-import org.eclipse.jpt.common.utility.command.Command;
 import org.eclipse.jpt.jpa.core.context.PersistentType;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.JPADiagramEditorPlugin;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorUtil;
@@ -33,51 +31,49 @@ import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
-public class RenameAttributeCommand implements Command {
-
+public class RenameEntityClass {
+	
 	private PersistentType jpt;
-	private String oldName;
-	private String newName;
-
-	public RenameAttributeCommand(PersistentType jpt, String oldName,
-			String newName) {
-
+	private String newEntityName;
+	
+	public RenameEntityClass(PersistentType jpt, String newEntityName){
 		super();
 		this.jpt = jpt;
-		this.oldName = oldName;
-		this.newName = newName;
+		this.newEntityName = newEntityName;
 	}
 
 	public void execute() {
-		ICompilationUnit jptCompilationUnit = JPAEditorUtil
-				.getCompilationUnit(jpt);
-
-		IField attributeField = jptCompilationUnit.getType(jpt.getSimpleName())
-				.getField(oldName);
-		RefactoringContribution contribution = RefactoringCore
-				.getRefactoringContribution(IJavaRefactorings.RENAME_FIELD);
-		RenameJavaElementDescriptor descriptor = (RenameJavaElementDescriptor) contribution
-				.createDescriptor();
-		descriptor.setProject(jpt.getJpaProject().getName());
-		descriptor.setNewName(newName);
-		descriptor.setJavaElement(attributeField);
-		descriptor.setUpdateReferences(true);
-
-		descriptor.setRenameGetters(true);
-		descriptor.setRenameSetters(true);
-
+		
+		ICompilationUnit cu = JPAEditorUtil.getCompilationUnit(jpt);		
 		try {
+			RefactoringContribution contribution =
+			    RefactoringCore.getRefactoringContribution(IJavaRefactorings.RENAME_TYPE);
+			RenameJavaElementDescriptor descriptor =
+			    (RenameJavaElementDescriptor) contribution.createDescriptor();
+			descriptor.setProject(jpt.getJpaProject().getName( ));
+			descriptor.setNewName(newEntityName); // new name for a Class
+			descriptor.setJavaElement(cu.getType(jpt.getSimpleName()));
+			descriptor.setUpdateReferences(true);
+			descriptor.setUpdateSimilarDeclarations(true);
+			descriptor.setMatchStrategy(RenameJavaElementDescriptor.STRATEGY_EMBEDDED);
+			
 			RenameSupport sup = RenameSupport.create(descriptor);
 			IWorkbenchWindow ww = JPADiagramEditorPlugin.getDefault()
 					.getWorkbench().getActiveWorkbenchWindow();
 			Shell sh = ww.getShell();
-			sup.perform(sh, ww);
-		} catch (InterruptedException e) {
-			JPADiagramEditorPlugin.logError("Cannot rename attribute", e); //$NON-NLS-1$
-		} catch (InvocationTargetException e) {
-			JPADiagramEditorPlugin.logError("Cannot rename attribute", e); //$NON-NLS-1$
-		} catch (CoreException e1) {
-			JPADiagramEditorPlugin.logError("Cannot rename attribute", e1); //$NON-NLS-1$
+			try {
+				sup.perform(sh, ww);
+			} catch (InterruptedException e) {
+				JPADiagramEditorPlugin.logError("Cannot rename the type " + jpt.getSimpleName(), e); //$NON-NLS-1$
+
+			} catch (InvocationTargetException e) {
+				JPADiagramEditorPlugin.logError("Cannot rename the type " + jpt.getSimpleName(), e); //$NON-NLS-1$
+
+			}
+
+		} catch (CoreException e) {
+			JPADiagramEditorPlugin.logError("Cannot rename the type " + jpt.getSimpleName(), e); //$NON-NLS-1$
 		}
-	}
+		
+	}	
 }

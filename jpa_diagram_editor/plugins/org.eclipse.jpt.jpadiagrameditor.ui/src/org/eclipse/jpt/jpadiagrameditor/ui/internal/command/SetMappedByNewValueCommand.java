@@ -62,11 +62,13 @@ public class SetMappedByNewValueCommand implements Command{
 		
 		PersistentType pt = pu.getPersistentType(inverseEntityName);
 		if(pt == null) {
+			System.out.println("baaaaaaaaaaaaaaaaaa");
 			return;
 		}
 		
 		PersistentAttribute pa = pt.getAttributeNamed(inverseAttributeName);
 		if(pa == null) {
+			System.out.println("shtiiiiiiiiiiiiiiii");
 			return;
 		}
 		
@@ -77,8 +79,10 @@ public class SetMappedByNewValueCommand implements Command{
 			MappedByRelationship mappedByrelationShip = (MappedByRelationship) ((RelationshipMapping)m).getRelationship();
 			SpecifiedMappedByRelationshipStrategy mappedByStrategy = mappedByrelationShip.getMappedByStrategy();
 			String mappedBy = mappedByStrategy.getMappedByAttribute();
-			if (mappedBy == null)
+			if (mappedBy == null) {
+				System.out.println("ahhhhhhhhhhhhhhhhh");
 				return;
+			}
 			String[] mappedByAttrs = mappedBy.split(JPAEditorConstants.MAPPED_BY_ATTRIBUTE_SPLIT_SEPARATOR);		
 			if(mappedByAttrs.length > 1){
 				if(mappedByAttrs[0].equals(oldAt.getName())){
@@ -99,8 +103,18 @@ public class SetMappedByNewValueCommand implements Command{
 					((OwnableRelationshipMappingAnnotation)a).setMappedBy(mappedBy);
 				}
 			}
-			mappedByrelationShip.synchronizeWithResourceModel();
+////			mappedByrelationShip.synchronizeWithResourceModel();
+//			mappedByrelationShip.update();
+////			mappedByStrategy.synchronizeWithResourceModel();
+//			mappedByStrategy.update();
 		}
+//		
+//		PersistentType jpt1 = pa.getDeclaringPersistentType();
+////		jpt1.getJpaProject().getContextModelRoot().synchronizeWithResourceModel();
+////		jpt1.getJavaResourceType().getJavaResourceCompilationUnit().synchronizeWithJavaSource();
+//		jpt1.synchronizeWithResourceModel();
+////		jpt1.getJavaResourceType().getJavaResourceCompilationUnit().
+//		jpt1.update();
 
 	}
 	

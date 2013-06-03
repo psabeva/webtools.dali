@@ -119,14 +119,14 @@ public class DirectEditAttributeFeature extends AbstractDirectEditingFeature {
 				if (oldAt.getName().equals(value))
 					return;
 				try {
-					JpaArtifactFactory.instance().renameAttribute((PersistentType) oldAt.getParent(), oldAt.getName(), value, inverseJPTName, getFeatureProvider());
+					JpaArtifactFactory.instance().renameAttribute((PersistentType) oldAt.getParent(), oldAt.getName(), value);
 				} catch (InterruptedException e) {
 					return;
 				}
 			}
 		} else {
 			try {
-				JpaArtifactFactory.instance().renameAttribute((PersistentType) oldAt.getParent(), oldAt.getName(), value, null, getFeatureProvider());
+				JpaArtifactFactory.instance().renameAttribute((PersistentType) oldAt.getParent(), oldAt.getName(), value);
 			} catch (InterruptedException e) {
 				return;
 			}

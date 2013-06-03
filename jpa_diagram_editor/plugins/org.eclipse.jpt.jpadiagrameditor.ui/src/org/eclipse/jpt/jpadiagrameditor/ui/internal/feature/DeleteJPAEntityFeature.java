@@ -25,6 +25,8 @@ import org.eclipse.graphiti.features.context.IDeleteContext;
 import org.eclipse.graphiti.features.context.IMultiDeleteInfo;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.ui.features.DefaultDeleteFeature;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jpt.jpa.core.JpaPreferences;
 import org.eclipse.jpt.jpa.core.JpaProject;
@@ -49,6 +51,8 @@ public class DeleteJPAEntityFeature extends DefaultDeleteFeature {
     	PictogramElement pe = context.getPictogramElement();
     	
     	PersistentType jpt = (PersistentType)getFeatureProvider().getBusinessObjectForPictogramElement(pe);
+    	ICompilationUnit unit = JPAEditorUtil.getCompilationUnit(jpt);
+
     	entityClassName = jpt.getName();
     	entityName = JPAEditorUtil.returnSimpleName(JpaArtifactFactory.instance().getEntityName(jpt));
     	TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(pe);
@@ -59,6 +63,16 @@ public class DeleteJPAEntityFeature extends DefaultDeleteFeature {
 			}
 		});
     	
+//    	ICompilationUnit unit = JPAEditorUtil.getCompilationUnit(jpt);
+    	if(unit.isWorkingCopy()){
+    		System.out.println("baaaaaaa go");
+    		try {
+				unit.discardWorkingCopy();
+			} catch (JavaModelException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
     }
     	
     public void deleteEl(IDeleteContext context){

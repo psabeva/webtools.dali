@@ -353,7 +353,7 @@ public class JPADiagramEditor extends DiagramEditor implements JpaEditorManager{
 		}
 	}
 
-	private JpaSelectionManager getJpaSelectionManager() {
+	public JpaSelectionManager getJpaSelectionManager() {
 		return jpaSelectionManagerFactory.getSelectionManager(this.getSite()
 				.getWorkbenchWindow());
 	}
@@ -372,7 +372,7 @@ public class JPADiagramEditor extends DiagramEditor implements JpaEditorManager{
 	}
 
 	public IEditorPart getEditor() {
-		return this.getEditor();
+		return this;
 	}
 
 	public ModifiablePropertyValueModel<JpaStructureNode> getJpaSelectionModel() {

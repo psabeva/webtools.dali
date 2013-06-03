@@ -21,12 +21,16 @@ import java.util.List;
 import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
+import org.eclipse.graphiti.features.context.impl.LayoutContext;
 import org.eclipse.graphiti.mm.algorithms.GraphicsAlgorithm;
 import org.eclipse.graphiti.mm.algorithms.Text;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
+import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.mm.pictograms.Shape;
 import org.eclipse.graphiti.services.Graphiti;
+import org.eclipse.jpt.jpadiagrameditor.ui.internal.provider.IJPAEditorFeatureProvider;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorConstants.ShapeType;
+import org.eclipse.swt.widgets.Display;
 
 
 public class GraphicsUpdater {
@@ -169,17 +173,23 @@ public class GraphicsUpdater {
 		final Text txt = getHeaderText(entityShape);
 		if (txt == null)
 			return;
-		//if (!JPAEditorUtil.areHeadersEqual(txt.getValue(), newHeader)) {
+//		if (!JPAEditorUtil.areHeadersEqual(txt.getValue(), newHeader)) {
 
 		if (!txt.getValue().equals(newHeader)) {
-			TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(txt);
-			RecordingCommand rc = new RecordingCommand(ted) {
+			
+			final TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(txt);
+			final RecordingCommand rc = new RecordingCommand(ted) {
 				@Override
 				protected void doExecute() {
 					txt.setValue(newHeader);		
 				}		
-			};			
-			ted.getCommandStack().execute(rc);
+			};	
+			
+			Display.getDefault().syncExec(new Runnable() {
+				public void run() {
+					ted.getCommandStack().execute(rc);
+				}
+			});
 		}
 	}
 	
@@ -205,5 +215,21 @@ public class GraphicsUpdater {
 			return null;
 		Text txt = (Text)ga.getGraphicsAlgorithmChildren().get(0);
 		return txt;
+	}
+	
+	public static void linkNewBoToPict(Object oldBO, PictogramElement pict,
+			IJPAEditorFeatureProvider fp, Object newBO) {
+		fp.link(pict, newBO);
+		LayoutContext context = new LayoutContext(pict);
+		fp.layoutIfPossible(context);
+
+		String oldBoKey = fp.getKeyForBusinessObject(oldBO);
+		if (oldBoKey != null) {
+			fp.remove(oldBoKey);
+		}
+		String newBoKey = fp.getKeyForBusinessObject(newBO);
+		if (fp.getBusinessObjectForKey(newBoKey) == null) {
+			fp.putKeyToBusinessObject(newBoKey, newBO);
+		}
 	}
 }

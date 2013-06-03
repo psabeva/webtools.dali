@@ -31,6 +31,7 @@ import org.eclipse.graphiti.internal.Messages;
 import org.eclipse.graphiti.mm.pictograms.Anchor;
 import org.eclipse.graphiti.mm.pictograms.Connection;
 import org.eclipse.graphiti.mm.pictograms.ConnectionDecorator;
+import org.eclipse.graphiti.mm.pictograms.FreeFormConnection;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.mm.pictograms.Shape;
 import org.eclipse.graphiti.services.Graphiti;
@@ -85,6 +86,10 @@ public class RemoveRelationFeature extends AbstractFeature implements IRemoveFea
 		final PictogramElement pe = context.getPictogramElement();
 		if (pe == null) 
 			return;
+		if((pe instanceof FreeFormConnection) && (((FreeFormConnection)pe).getStart()==null || ((FreeFormConnection)pe).getEnd() == null)){
+			System.out.println("ibatiiiiii");
+			return;
+		}
 		TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(pe);
 		RecordingCommand rc = new RecordingCommand(ted) {
 			@Override
@@ -93,10 +98,14 @@ public class RemoveRelationFeature extends AbstractFeature implements IRemoveFea
 					Shape shape = (Shape) pe;
 					removeAllConnections(shape);
 				}
+				if(!(pe instanceof Connection))
+					return;
 				Graphiti.getPeService().deletePictogramElement(pe);
 				postRemove(context);
 			}
 		};
+		
+//		((FreeFormConnection)pe).
 		ted.getCommandStack().execute(rc);
 	}
     

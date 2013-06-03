@@ -455,9 +455,10 @@ public class JPASolver implements IResourceChangeListener, IJpaSolver {
 			if(embeddableClass == null)
 				return relationShipKeys; //$NON-NLS-1$
 			for (PersistentAttribute relEntAt : embeddableClass.getAttributes())	{
-				IResource r = relEntAt.getDeclaringPersistentType().getResource();
-				if (!r.exists())
+				ICompilationUnit cu = fp.getCompilationUnit(relEntAt.getDeclaringPersistentType());
+			if (!cu.exists()) {
 					throw new RuntimeException();
+			}
 				
 				AttributeMapping relationAttributeMapping = jpaFactory.getAttributeMapping(relEntAt);
 					if (relationAttributeMapping instanceof RelationshipMapping) {
