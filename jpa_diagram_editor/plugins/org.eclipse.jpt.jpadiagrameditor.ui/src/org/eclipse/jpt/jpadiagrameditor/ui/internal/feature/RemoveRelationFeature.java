@@ -87,8 +87,7 @@ public class RemoveRelationFeature extends AbstractFeature implements IRemoveFea
 		if (pe == null) 
 			return;
 		if((pe instanceof FreeFormConnection) && (((FreeFormConnection)pe).getStart()==null || ((FreeFormConnection)pe).getEnd() == null)){
-			System.out.println("ibatiiiiii");
-			return;
+            return;
 		}
 		TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(pe);
 		RecordingCommand rc = new RecordingCommand(ted) {
@@ -98,14 +97,13 @@ public class RemoveRelationFeature extends AbstractFeature implements IRemoveFea
 					Shape shape = (Shape) pe;
 					removeAllConnections(shape);
 				}
-				if(!(pe instanceof Connection))
-					return;
+				if(!(pe instanceof Connection)) {
+                    return;
+				}
 				Graphiti.getPeService().deletePictogramElement(pe);
 				postRemove(context);
 			}
 		};
-		
-//		((FreeFormConnection)pe).
 		ted.getCommandStack().execute(rc);
 	}
     

@@ -25,86 +25,71 @@ import org.eclipse.ltk.core.refactoring.participants.RenameParticipant;
 
 public class JptPictogramElementRenameParticipant extends RenameParticipant {
 
-	protected IJavaElement originalJavaElement;
-//	protected IJavaElement[] elements;
-	protected String newName;
-	private Map<PersistentAttribute, String> mapAttributes = new HashMap<PersistentAttribute, String>();
+    protected IJavaElement originalJavaElement;
+    protected String newName;
+    private Map<PersistentAttribute, String> mapAttributes = new HashMap<PersistentAttribute, String>();
 
-	@Override
-	protected boolean initialize(Object element) {
-		if (!getArguments().getUpdateReferences()) {
-			return false;
-		}
+    @Override
+    protected boolean initialize(Object element) {
+            if (!getArguments().getUpdateReferences()) {
+                    return false;
+            }
 
-		newName = getArguments().getNewName();
+            newName = getArguments().getNewName();
 
-		this.originalJavaElement = (IJavaElement) element;
-		if(!originalJavaElement.getResource().getParent().exists())
-			return false;
-		return true;
-	}
+            this.originalJavaElement = (IJavaElement) element;
+            if(!originalJavaElement.getResource().getParent().exists())
+                    return false;
+            return true;
+    }
 
-	@Override
-	public String getName() {
-		return "Update element";
-	}
+    @Override
+    public String getName() {
+            return "Update element";
+    }
 
-	@Override
-	public RefactoringStatus checkConditions(IProgressMonitor pm,
-			CheckConditionsContext context) throws OperationCanceledException {
-		try {
-			RefactoringStatus status = context.check(pm);
-			status.hasEntries();
-			if(status.hasError()){
-				System.out.println(">>>>>>>>>>>>>>>>> error");
-			} else if(status.hasFatalError()){
-				System.out.println("+++++++++++++++++++++++++ fatal error");
-			} else if(status.hasWarning()){
-				System.out.println("== da be");
-			}
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return RefactoringStatus.create(Status.OK_STATUS);
-	}
+    @Override
+    public RefactoringStatus checkConditions(IProgressMonitor pm,
+                    CheckConditionsContext context) throws OperationCanceledException {
+            return RefactoringStatus.create(Status.OK_STATUS);
+    }
 
-	@SuppressWarnings("restriction")
-	@Override
+    @SuppressWarnings("restriction")
+    @Override
 	public Change createChange(IProgressMonitor pm) throws CoreException,
 			OperationCanceledException {
 
 		RenameTypeProcessor renameProcessor = null;
-		if(getProcessor() instanceof RenameCompilationUnitProcessor){
-			renameProcessor = ((RenameCompilationUnitProcessor)getProcessor()).getRenameTypeProcessor();
+		if (getProcessor() instanceof RenameCompilationUnitProcessor) {
+			renameProcessor = ((RenameCompilationUnitProcessor) getProcessor()).getRenameTypeProcessor();
 		} else {
-			renameProcessor = ((RenameTypeProcessor)getProcessor());
+			renameProcessor = ((RenameTypeProcessor) getProcessor());
 		}
 
 		IType oldType = renameProcessor.getType();
-		final PersistentType oldJPT = JPAEditorUtil.getJPType((ICompilationUnit)oldType.getCompilationUnit());
+		final PersistentType oldJPT = JPAEditorUtil.getJPType((ICompilationUnit) oldType.getCompilationUnit());
 		final ICompilationUnit newUnit = ((IType) renameProcessor.getRefactoredJavaElement(oldType)).getCompilationUnit();
 
-		
 		RenameTypeArguments renameArg = (RenameTypeArguments) getArguments();
 		IJavaElement[] elements = renameArg.getSimilarDeclarations();
-		if(elements != null) {
+		if (elements != null) {
 			renameProcessor.setMatchStrategy(RenameJavaElementDescriptor.STRATEGY_EMBEDDED);
-			for(IJavaElement oldElement : elements){
+			for (IJavaElement oldElement : elements) {
 				IJavaElement newElement = renameProcessor.getRefactoredJavaElement(oldElement);
-				if(oldElement instanceof IField){
+				if (oldElement instanceof IField) {
 					IType type = ((IField) oldElement).getDeclaringType();
 					PersistentType jpt = JPAEditorUtil.getJPType(type.getCompilationUnit());
-					if(jpt != null){
+					if (jpt != null) {
+						jpt.getJavaResourceType().getJavaResourceCompilationUnit().synchronizeWithJavaSource();
+						jpt.synchronizeWithResourceModel();
+						jpt.update();
 						PersistentAttribute jpa = jpt.getAttributeNamed(oldElement.getElementName());
 						mapAttributes.put(jpa, newElement.getElementName());
-
 					}
 				}
 			}
 		}
-
-		return new RefreshJptPictogramElementChange(newUnit, oldJPT, mapAttributes);
+		return new RefreshJptPictogramElementChange(newUnit, oldJPT, mapAttributes, false);
 
 	}
 }

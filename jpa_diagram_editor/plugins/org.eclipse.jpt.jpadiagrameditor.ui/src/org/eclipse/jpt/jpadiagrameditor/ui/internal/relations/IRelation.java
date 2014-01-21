@@ -31,8 +31,12 @@ public interface IRelation {
 	public abstract String getId();
 
 	public abstract PersistentType getOwner();
+	
+	public abstract void setOwner(PersistentType type);
 
 	public abstract PersistentType getInverse();
+	
+	public abstract void setInverse(PersistentType type);
 
 	public void setOwnerAnnotatedAttribute(PersistentAttribute ownerAnnotatedAttribute);
 

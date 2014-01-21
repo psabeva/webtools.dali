@@ -278,9 +278,25 @@ public class JPAEditorUtil {
     	PersistenceUnit pu = JpaArtifactFactory.instance().getPersistenceUnit(proj);
     	PersistentType pt = pu.getPersistentType(name);
     	
-    	if(pt == null) {
-    		pt = JpaArtifactFactory.instance().getJPT(name, pu);
-    	}
+		if (pt == null) {
+			pt = JpaArtifactFactory.instance().getJPT(name, pu);
+		}
+    	return pt;
+    }
+    
+    public static PersistentType findJpt(IType type) {
+    	String name = type.getFullyQualifiedName();
+		IJavaProject jp = type.getJavaProject();
+    	JpaProject proj = null;
+		proj = JpaArtifactFactory.instance().getJpaProject(jp.getProject());
+		if (proj == null)
+			return null;
+    	PersistenceUnit pu = JpaArtifactFactory.instance().getPersistenceUnit(proj);
+    	PersistentType pt = pu.getPersistentType(name);
+    	
+		if (pt == null) {
+			pt = JpaArtifactFactory.instance().getJPT(name, pu);
+		}
     	return pt;
     }
     
@@ -1319,9 +1335,11 @@ public class JPAEditorUtil {
     	return MessageFormat.format(JPAEditorMessages.JPAEditorUtil_typeTooltipText, new Object[] { res }); 
     }
     
-	static public boolean checkJPAFacetVersion(JpaProject jpaProject, String version) {
-		if(jpaProject != null)
+	static public boolean checkJPAFacetVersion(JpaProject jpaProject,
+			String version) {
+		if (jpaProject != null) {
 			return checkJPAFacetVersion(jpaProject.getProject(), version);
+		}
 		return false;
 	}	
 	

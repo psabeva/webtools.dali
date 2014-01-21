@@ -43,8 +43,6 @@ import org.eclipse.jpt.jpadiagrameditor.ui.internal.provider.IJPAEditorFeaturePr
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorUtil;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JpaArtifactFactory;
 
-
-
 public class DirectEditJPAEntityFeature extends AbstractDirectEditingFeature {
 
 	private static String allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_";	//$NON-NLS-1$
@@ -113,10 +111,7 @@ public class DirectEditJPAEntityFeature extends AbstractDirectEditingFeature {
 	    	ft.execute(jpt);
 	    	return;
 	    } else {
-	    
-//	    JpaArtifactFactory.instance().renameEntity(jpt, value);
-//	    Properties props = JPADiagramPropertyPage.loadProperties(jpt.getJpaProject().getProject());
-		if ((JpaArtifactFactory.instance().isEntity(jpt) && JPADiagramPropertyPage.doesDirecteEditingAffectClassNameByDefault(jpt.getJpaProject().getProject(), props)) 
+			if ((JpaArtifactFactory.instance().isEntity(jpt) && JPADiagramPropertyPage.doesDirecteEditingAffectClassNameByDefault(jpt.getJpaProject().getProject(), props)) 
 					|| JpaArtifactFactory.instance().isMappedSuperclass(jpt) 
 					|| JpaArtifactFactory.instance().isEmbeddable(jpt)) {
 				RenameEntityWithoutUIFeature ft = new RenameEntityWithoutUIFeature(getFeatureProvider(), value);
@@ -125,15 +120,7 @@ public class DirectEditJPAEntityFeature extends AbstractDirectEditingFeature {
 			}
 		}
 	    
-	    final GraphicsAlgorithm alg = pe.getGraphicsAlgorithm().getGraphicsAlgorithmChildren().get(0);
-
-//		TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(alg);
-//		ted.getCommandStack().execute(new RecordingCommand(ted) {
-//			@Override
-//			protected void doExecute() {
-//				((Text) alg).setValue(value);
-//			}
-//		});	    
+	    final GraphicsAlgorithm alg = pe.getGraphicsAlgorithm().getGraphicsAlgorithmChildren().get(0);   
 	    
 	    Set<PersistentAttribute> ats = JpaArtifactFactory.instance().getRelatedAttributes(jpt);
 	    Iterator<PersistentAttribute> it = ats.iterator();
@@ -144,7 +131,7 @@ public class DirectEditJPAEntityFeature extends AbstractDirectEditingFeature {
 	    	if (JpaArtifactFactory.instance().isMethodAnnotated(at)) 
 	    		newAtName = JPAEditorUtil.produceValidAttributeName(newAtName);
 	    	try {
-				JpaArtifactFactory.instance().renameAttribute(at.getDeclaringPersistentType(), at.getName(), newAtName);
+	    		JpaArtifactFactory.instance().renameAttribute(at.getDeclaringPersistentType(), at.getName(), newAtName);
 			} catch (InterruptedException e) {
 				JPADiagramEditorPlugin.logError(e);
 			}
@@ -161,13 +148,13 @@ public class DirectEditJPAEntityFeature extends AbstractDirectEditingFeature {
 	    }
 	    
 	    JpaArtifactFactory.instance().renameEntity(jpt, value);
-	    TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(alg);
-		ted.getCommandStack().execute(new RecordingCommand(ted) {
-			@Override
-			protected void doExecute() {
-				((Text) alg).setValue(value);
-			}
-		});	
+        TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(alg);
+               ted.getCommandStack().execute(new RecordingCommand(ted) {
+                       @Override
+                       protected void doExecute() {
+                               ((Text) alg).setValue(value);
+                       }
+               });
 	}
 	
 	@Override

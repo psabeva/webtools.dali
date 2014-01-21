@@ -364,7 +364,9 @@ public class JPASolver implements IResourceChangeListener, IJpaSolver {
 			IsARelation rel = (IsARelation) bo;
 			attribToIsARel.put(produceKeyForIsARel(rel), rel);
 		} else if (bo instanceof PersistentAttribute) {
-			addPropertiesListenerToAttribute((PersistentAttribute)bo);
+			PersistentAttribute jpa = (PersistentAttribute) bo;
+//			addListenersToEntity(jpa.getDeclaringPersistentType());
+			addPropertiesListenerToAttribute(jpa);
 		}
 	}
 
@@ -417,6 +419,42 @@ public class JPASolver implements IResourceChangeListener, IJpaSolver {
 		String key = produceKeyForRel(jpa.getDeclaringPersistentType(), jpa.getName());
 		return attribToRel.containsKey(key);
 	}
+	
+	public void updateKeyForRel(PersistentType jpt, PersistentType newJpt,
+			PersistentAttribute jpa) {
+		String key = produceKeyForRel(jpt, jpa.getName());
+		if (attribToRel.containsKey(key)) {
+			IRelation rel = attribToRel.get(key);
+			if(rel.getOwner().equals(jpt)){
+				rel.setOwner(newJpt);
+			} else if(rel.getInverse().equals(jpt)){
+				rel.setInverse(newJpt);
+			}
+			String newKey = produceKeyForRel(newJpt, jpa.getName());
+			attribToRel.remove(key);
+			attribToRel.put(newKey, rel);
+		} else if (attribToEmbeddedRel.containsKey(key)){
+			HasReferanceRelation rel = attribToEmbeddedRel.get(key);
+			if(rel.getEmbeddable().equals(jpt)){
+				rel.setEmbeddable(newJpt);
+			} else if(rel.getEmbeddingEntity().equals(jpt)){
+				rel.setEmbeddingEntity(newJpt);
+			}
+			String newey = produceKeyForRel(newJpt, jpa.getName());
+			attribToEmbeddedRel.remove(key);
+			attribToEmbeddedRel.put(newey, rel);
+		} else if (attribToIsARel.containsKey(key)){
+			IsARelation rel = attribToIsARel.get(key);
+			if(rel.getSubclass().equals(jpt)){
+				rel.setSubclass(newJpt);
+			} else if(rel.getSuperclass().equals(key)){
+				rel.setSuperclass(newJpt);
+			}
+			String newKey = produceKeyForRel(newJpt, jpa.getName());
+			attribToIsARel.remove(key);
+			attribToIsARel.put(newKey, rel);
+		}
+	}
 
 	public Set<IRelation> getRelationRelatedToAttribute(PersistentAttribute jpa, String typeName, IJPAEditorFeatureProvider fp) {
 		Set<String> keys = findRelationshipKey(jpa, typeName, fp);
@@ -455,11 +493,10 @@ public class JPASolver implements IResourceChangeListener, IJpaSolver {
 			if(embeddableClass == null)
 				return relationShipKeys; //$NON-NLS-1$
 			for (PersistentAttribute relEntAt : embeddableClass.getAttributes())	{
-				ICompilationUnit cu = fp.getCompilationUnit(relEntAt.getDeclaringPersistentType());
-			if (!cu.exists()) {
-					throw new RuntimeException();
-			}
-				
+//				ICompilationUnit cu = fp.getCompilationUnit(relEntAt.getDeclaringPersistentType());
+//                if (!cu.exists()) {
+//                	throw new RuntimeException();
+//                }
 				AttributeMapping relationAttributeMapping = jpaFactory.getAttributeMapping(relEntAt);
 					if (relationAttributeMapping instanceof RelationshipMapping) {
 						PersistentType jpt = jpaFactory.findJPT(relEntAt, fp, jpaFactory.getRelTypeName(relEntAt));
@@ -480,7 +517,7 @@ public class JPASolver implements IResourceChangeListener, IJpaSolver {
 				}
 			}
 		} else {
-			relationShipKeys.add(produceKeyForRel((PersistentType) jpa.getParent(), jpa.getName()));
+			relationShipKeys.add(produceKeyForRel((PersistentType) jpa.getDeclaringPersistentType(), jpa.getName()));
 		}
 		
 		return relationShipKeys;

@@ -57,9 +57,17 @@ abstract public class AbstractRelation implements IRelation {
 		return owner; 
 	}
 	
+	public void setOwner(PersistentType type){
+		this.owner = type;
+	}
+	
 	public PersistentType getInverse() {
 		return inverse; 
 	}	
+	
+	public void setInverse(PersistentType type){
+		this.owner = type;
+	}
 
 	public PersistentAttribute getInverseAnnotatedAttribute() {
 		return inverseAnnotatedAttribute;

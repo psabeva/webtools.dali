@@ -986,7 +986,7 @@ public class JpaArtifactFactory {
 			Shape sh = iter.next();
 			PersistentType jpt = (PersistentType) fp
 					.getBusinessObjectForPictogramElement(sh);
-			if (jpt == null)
+			if (jpt == null || !jpt.getResource().exists())
 				continue;
 			//if (!checkedEntities.contains(jpt)) {
 			Collection<IRelation> rels = produceIRelations(jpt, newJPT, fp);
@@ -1017,7 +1017,7 @@ public class JpaArtifactFactory {
 		while (iter.hasNext()) {
 			Shape sh = iter.next();
 			PersistentType embeddingEntity = (PersistentType) fp.getBusinessObjectForPictogramElement(sh);
-			if (embeddingEntity == null)
+			if (embeddingEntity == null || !embeddingEntity.getResource().exists())
 				continue;
 			Collection<HasReferanceRelation> rels = produceEmbRelations(embeddingEntity, jpt, fp);
 			res.addAll(rels);
@@ -1038,22 +1038,19 @@ public class JpaArtifactFactory {
 		Collection<HasReferanceRelation> resSet = new HashSet<HasReferanceRelation>();
 		HasReferanceRelation res = null;
 		for (PersistentAttribute embeddingAttribute : embeddingEntity.getAttributes()) {
-			try {
-				AttributeMapping attributeMapping = getAttributeMapping(embeddingAttribute);
-				if((attributeMapping instanceof EmbeddedMapping) || (attributeMapping instanceof ElementCollectionMapping2_0) || (attributeMapping instanceof EmbeddedIdMapping)){
-					String attributeTypeName = getRelTypeName(embeddingAttribute);
-					if(embeddable != null && !(attributeTypeName.equals(embeddable.getName()))) {
-							continue;
-					}
-				PersistentType embeddableClass = findJPT(embeddingAttribute, fp, getRelTypeName(embeddingAttribute));
-				if (embeddableClass != null) {
-					res = produceEmbeddedRelation(embeddingAttribute, attributeMapping, embeddableClass, fp);
-					if (res != null)
-						resSet.add(res);
-					}
-				}				
-			} catch (Exception e) { 
-				throw new RuntimeException();
+			AttributeMapping attributeMapping = getAttributeMapping(embeddingAttribute);
+			if((attributeMapping instanceof EmbeddedMapping) || (attributeMapping instanceof ElementCollectionMapping2_0) || (attributeMapping instanceof EmbeddedIdMapping)){
+				String attributeTypeName = getRelTypeName(embeddingAttribute);
+				//if attributeTypeName is null (this can happen if renaming an orml.xml embeddable involved in a bi-dir rel) causes the rel to disappear.
+				if(embeddable != null &&  attributeTypeName != null && !(attributeTypeName.equals(embeddable.getName()))) {
+						continue;
+				}
+			PersistentType embeddableClass = findJPT(embeddingAttribute, fp, getRelTypeName(embeddingAttribute));
+			if (embeddableClass != null) {
+				res = produceEmbeddedRelation(embeddingAttribute, attributeMapping, embeddableClass, fp);
+				if (res != null)
+					resSet.add(res);
+				}
 			}
 			
 		}
@@ -1078,14 +1075,11 @@ public class JpaArtifactFactory {
 				}
 				
 				PersistentType relJPT = findJPT(persistentAttribite, fp, getRelTypeName(persistentAttribite));
-//				relJPT.getJavaResourceType().getJavaResourceCompilationUnit().synchronizeWithJavaSource();
-//				relJPT.synchronizeWithResourceModel();
-//				relJPT.update();
 				if (relJPT != null) {
 					relJPT.getJavaResourceType().getJavaResourceCompilationUnit().synchronizeWithJavaSource();
 					relJPT.synchronizeWithResourceModel();
 					relJPT.update();
-						res = produceRelation(persistentAttribite, attributeMapping, relJPT, fp);
+					res = produceRelation(persistentAttribite, attributeMapping, relJPT, fp);
 				}
 		}
 		return res;
@@ -1204,61 +1198,20 @@ public class JpaArtifactFactory {
 		return res;
 	}
 
-	public void renameAttribute(PersistentType jpt,
-			String oldName, String newName) throws InterruptedException {
-//		newName = JPAEditorUtil.decapitalizeFirstLetter(newName);
-//		if (isMethodAnnotated(jpt)) {		
-//			newName = JPAEditorUtil.produceValidAttributeName(newName);
-//		} 
-//		newName = JPAEditorUtil.produceUniqueAttributeName(jpt, newName);
-//		PersistenceUnit pu = null;
-//		PersistentAttribute oldAt = null;
-//				
-//		if(jpt instanceof OrmPersistentType){
-//			oldAt = ((OrmPersistentType)jpt).getJavaPersistentType().getAttributeNamed(oldName);
-//		} else {
-//			oldAt = jpt.getAttributeNamed(oldName);
-//		}
-//		
-//		if(oldAt == null){
-//			return null;
-//		}
-//		
-//		if(oldAt.getParent() == null){
-//			oldAt.getDeclaringPersistentType();
-//		}
-//		
-//		fp.addAddIgnore(jpt, newName);
-//		fp.addRemoveIgnore(jpt, oldName);
-//		
-//		String attributeTypeName = getRelTypeName(oldAt);
-
-		Command renameAttributeCommand = new RenameAttributeCommand(jpt, oldName, newName);
-		getJpaProjectManager().execute(renameAttributeCommand, SynchronousUiCommandContext.instance());
-		
-//		jpt.update();
-//		PersistentAttribute newAt = jpt.getAttributeNamed(newName);
-//		if (newAt == null) {
-//			return null;
-//		}
-//		
-//		fp.addRemoveIgnore(jpt, oldName);
-////		try {
-//			fp.replaceAttribute(oldAt, newAt);
-//		} catch (Exception e) {
-//			return newAt;
-//		}
-//		
-//		updateIRelationshipAttributes(jpt, inverseEntityName, fp, pu, oldAt,
-//				newAt, attributeTypeName);
-		
-//		return newAt;
+	public void renameAttribute(PersistentType jpt, String oldName,
+			String newName) throws InterruptedException {
+//		JPASolver.ignoreEvents = true;
+		RenameAttributeCommand renameAttributeCommand = new RenameAttributeCommand(jpt, oldName, newName);
+		renameAttributeCommand.execute();
+//		JPASolver.ignoreEvents = false;
 	}
-
+	
 	public void updateIRelationshipAttributes(PersistentType jpt,
 			String inverseEntityName, IJPAEditorFeatureProvider fp,
-			PersistenceUnit pu, PersistentAttribute oldAt,
+			PersistentAttribute oldAt,
 			PersistentAttribute newAt, String typeName) throws InterruptedException {
+		PersistenceUnit pu = JpaArtifactFactory.instance()
+				.getPersistenceUnit(jpt);
 		Set<IRelation> rels = fp.getRelationRelatedToAttribute(oldAt, typeName);
 		Iterator<IRelation> iter = rels.iterator();
 		while(iter.hasNext()){
@@ -1300,9 +1253,8 @@ public class JpaArtifactFactory {
 			updateRelation(jpt, fp, rel, inverseJPT);
 			if(hasIDClass(jpt)) {
 				JavaPersistentType idClassJPT = getIdClassJPT(jpt);
-				if(idClassJPT != null && (idClassJPT.getAttributeNamed(oldAt.getName()) != null)){
-					Command renameAttributeCommand = new RenameAttributeCommand(idClassJPT, oldAt.getName(), newAt.getName());
-					getJpaProjectManager().execute(renameAttributeCommand, SynchronousUiCommandContext.instance());
+				if(idClassJPT != null && (idClassJPT.getAttributeNamed(oldAt.getName()) != null)){	 
+					renameAttribute(idClassJPT, oldAt.getName(), newAt.getName());
 				}
 			}
 		}
@@ -1355,9 +1307,8 @@ public class JpaArtifactFactory {
 		if (jpt.getName().equals(rel.getInverse().getName())) {
 			updateFeature.reconnect(rel.getOwner());
 		} else {
-			if(!rel.getInverse().getResource().exists() && inverseJPT != null){
+			if (!rel.getInverse().getResource().exists() && inverseJPT != null) {
 				updateFeature.reconnect(inverseJPT);
-
 			} else {
 				updateFeature.reconnect(rel.getInverse());
 			}
@@ -1774,7 +1725,7 @@ public class JpaArtifactFactory {
 	private void addNewRelation(IJPAEditorFeatureProvider fp, IRelation rel) {
 		Anchor startAnchor = JPAEditorUtil.getAnchor(rel.getOwner(), fp);
 		Anchor endAnchor = JPAEditorUtil.getAnchor(rel.getInverse(), fp);
-		if(startAnchor == null || endAnchor == null)
+		if (startAnchor == null || endAnchor == null)
 			return;
 		AddConnectionContext ctx = new AddConnectionContext(startAnchor, endAnchor);
 		ctx.setNewObject(rel);

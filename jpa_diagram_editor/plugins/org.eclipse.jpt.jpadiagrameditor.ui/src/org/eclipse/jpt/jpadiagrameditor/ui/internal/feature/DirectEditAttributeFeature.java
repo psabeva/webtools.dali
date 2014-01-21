@@ -16,18 +16,12 @@
 package org.eclipse.jpt.jpadiagrameditor.ui.internal.feature;
 
 import java.text.MessageFormat;
-import java.util.Iterator;
-import java.util.Set;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.emf.transaction.RecordingCommand;
-import org.eclipse.emf.transaction.TransactionalEditingDomain;
-import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.IDirectEditingContext;
 import org.eclipse.graphiti.features.impl.AbstractDirectEditingFeature;
-import org.eclipse.graphiti.mm.algorithms.GraphicsAlgorithm;
 import org.eclipse.graphiti.mm.algorithms.Text;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.jdt.core.JavaConventions;
@@ -37,8 +31,6 @@ import org.eclipse.jpt.jpa.core.context.PersistentType;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.JPADiagramEditorPlugin;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.i18n.JPAEditorMessages;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.provider.IJPAEditorFeatureProvider;
-import org.eclipse.jpt.jpadiagrameditor.ui.internal.relations.IBidirectionalRelation;
-import org.eclipse.jpt.jpadiagrameditor.ui.internal.relations.IRelation;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorUtil;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JpaArtifactFactory;
 
@@ -103,47 +95,19 @@ public class DirectEditAttributeFeature extends AbstractDirectEditingFeature {
 
 	@Override
 	public void setValue(String value, IDirectEditingContext context) {
-		if (isMethodAnnotated)
+
+		if (isMethodAnnotated) {
 			value = JPAEditorUtil.produceValidAttributeName(value);
+		}
 		PictogramElement pe = context.getPictogramElement();
 		PersistentAttribute oldAt = (PersistentAttribute) getBusinessObjectForPictogramElement(pe);
 
-		Set<IRelation> rels = getFeatureProvider().getRelationRelatedToAttribute(oldAt, JpaArtifactFactory.instance().getRelTypeName(oldAt));
-		if(!rels.isEmpty()) {
-			Iterator<IRelation> iter = rels.iterator();
-			while(iter.hasNext()) {
-				IRelation rel = iter.next();
-				String inverseJPTName = null;
-				if (IBidirectionalRelation.class.isInstance(rel)) 
-					inverseJPTName = rel.getInverse().getName();
-				if (oldAt.getName().equals(value))
-					return;
-				try {
-					JpaArtifactFactory.instance().renameAttribute((PersistentType) oldAt.getParent(), oldAt.getName(), value);
-				} catch (InterruptedException e) {
-					return;
-				}
-			}
-		} else {
-			try {
-				JpaArtifactFactory.instance().renameAttribute((PersistentType) oldAt.getParent(), oldAt.getName(), value);
-			} catch (InterruptedException e) {
-				return;
-			}
-		}
-		
-		if (pe.getGraphicsAlgorithm() == null)
+		try {
+			JpaArtifactFactory.instance().renameAttribute(
+					(PersistentType) oldAt.getParent(), oldAt.getName(), value);
 			return;
-		final GraphicsAlgorithm alg = pe.getGraphicsAlgorithm().getGraphicsAlgorithmChildren().get(0);
-		final String newValue = value;
-
-		TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(alg);
-		ted.getCommandStack().execute(new RecordingCommand(ted) {
-			@Override
-			protected void doExecute() {
-				((Text) alg).setValue(newValue);
-			}
-		});
+		} catch (InterruptedException e) {
+			return;
+		}
 	}
-
 }

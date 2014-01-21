@@ -29,8 +29,8 @@ import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorConstants;
 public abstract class HasReferanceRelation {
 	protected final static String SEPARATOR = ";hasReference;";							//$NON-NLS-1$
 
-	protected PersistentType embeddingEntity;
-	protected PersistentType embeddable;
+	private PersistentType embeddingEntity;
+	private PersistentType embeddable;
 	
 	public final static Hashtable<HasReferenceType, String> relTypeToIdPart = new Hashtable<HasReferenceType, String>(); 
 
@@ -102,5 +102,13 @@ public abstract class HasReferanceRelation {
 
 	public void setEmbeddedAnnotatedAttribute(PersistentAttribute embeddedAnnotatedAttribute) {
 		this.embeddedAnnotatedAttribute = embeddedAnnotatedAttribute;
+	}
+
+	public void setEmbeddable(PersistentType embeddable) {
+		this.embeddable = embeddable;
+	}
+
+	public void setEmbeddingEntity(PersistentType embeddingEntity) {
+		this.embeddingEntity = embeddingEntity;
 	}
 }

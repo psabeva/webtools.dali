@@ -74,7 +74,6 @@ import org.eclipse.jdt.internal.core.CompilationUnit;
 import org.eclipse.jdt.internal.core.SourceType;
 import org.eclipse.jpt.jpa.core.JpaModel;
 import org.eclipse.jpt.jpa.core.JpaProject;
-import org.eclipse.jpt.jpa.core.context.Entity;
 import org.eclipse.jpt.jpa.core.context.PersistentAttribute;
 import org.eclipse.jpt.jpa.core.context.PersistentType;
 import org.eclipse.jpt.jpa.core.context.persistence.ClassRef;
@@ -139,7 +138,6 @@ import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorUtilImpl;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPASolver;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JpaArtifactFactory;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.PeServiceUtilImpl;
-import org.eclipse.ui.PlatformUI;
 
 
 @SuppressWarnings("restriction")
@@ -523,6 +521,10 @@ public class JPAEditorFeatureProvider extends DefaultFeatureProvider implements 
     	return getIndependenceSolver().getBusinessObjectForKey(key);
     }
     
+    public void updateKeyRel(PersistentType jpt, PersistentType newJpt, PersistentAttribute jpa){
+    	((JPASolver)getIndependenceSolver()).updateKeyForRel(jpt, newJpt, jpa);
+    }
+    
     public String getKeyForBusinessObject(Object bo) {
     	return getIndependenceSolver().getKeyForBusinessObject(bo);
     }
@@ -541,12 +543,12 @@ public class JPAEditorFeatureProvider extends DefaultFeatureProvider implements 
     		final PersistentType jpt = (PersistentType)res;
     		if (save)
     			JpaArtifactFactory.instance().forceSaveEntityClass(jpt, this);
-    		if(!(jpt.getMapping() instanceof Entity)){
-    			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
-    				public void run() {
-    			          removeFromDiagramIfNotPersistentType(jpt);
-    				}});
-    		}
+//    		if(!(jpt.getMapping() instanceof Entity)){
+//    			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+//    				public void run() {
+//    			          removeFromDiagramIfNotPersistentType(jpt);
+//    				}});
+//    		}
 
     	}
     	return ((JPASolver)getIndependenceSolver()).remove(key);
@@ -730,22 +732,6 @@ public class JPAEditorFeatureProvider extends DefaultFeatureProvider implements 
 	@Override
 	public PictogramElement getPictogramElementForBusinessObject(Object businessObject) {
 		PictogramElement pe = super.getPictogramElementForBusinessObject(businessObject);
-		/*
-		int cnt = 0;
-		while ((pe == null) && (cnt < 20)) {
-			//System.out.println("loop");
-			try {
-				Thread.sleep(250);
-			} catch (InterruptedException e) {
-			}
-			System.out.println("loop; hc:" + businessObject.hashCode());
-			pe = super.getPictogramElementForBusinessObject(businessObject);
-			cnt++;
-		}
-		if (pe == null) {
-			System.out.println("FP - PE is null; hc:" + businessObject.hashCode());
-		}
-		*/
 		return pe;
 	}
 	

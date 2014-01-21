@@ -37,88 +37,90 @@ import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JPAEditorUtil;
 import org.eclipse.jpt.jpadiagrameditor.ui.internal.util.JpaArtifactFactory;
 import org.eclipse.ui.PlatformUI;
 
-
 public class DeleteJPAEntityFeature extends DefaultDeleteFeature {
-	
+
 	private String entityClassName = null;
 	private String entityName = null;
-	public DeleteJPAEntityFeature(IFeatureProvider fp) {
-		super(fp);		
-	}
-	
-    @Override
-	public void delete(final IDeleteContext context) {
-    	PictogramElement pe = context.getPictogramElement();
-    	
-    	PersistentType jpt = (PersistentType)getFeatureProvider().getBusinessObjectForPictogramElement(pe);
-    	ICompilationUnit unit = JPAEditorUtil.getCompilationUnit(jpt);
 
-    	entityClassName = jpt.getName();
-    	entityName = JPAEditorUtil.returnSimpleName(JpaArtifactFactory.instance().getEntityName(jpt));
-    	TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(pe);
-    	ted.getCommandStack().execute(new RecordingCommand(ted) {
+	public DeleteJPAEntityFeature(IFeatureProvider fp) {
+		super(fp);
+	}
+
+	@Override
+	public void delete(final IDeleteContext context) {
+		PictogramElement pe = context.getPictogramElement();
+
+		PersistentType jpt = (PersistentType) getFeatureProvider()
+				.getBusinessObjectForPictogramElement(pe);
+		ICompilationUnit unit = JPAEditorUtil.getCompilationUnit(jpt);
+		entityClassName = jpt.getName();
+		entityName = JPAEditorUtil.returnSimpleName(JpaArtifactFactory
+				.instance().getEntityName(jpt));
+		TransactionalEditingDomain ted = TransactionUtil.getEditingDomain(pe);
+		ted.getCommandStack().execute(new RecordingCommand(ted) {
 			@Override
 			protected void doExecute() {
 				deleteEl(context);
 			}
 		});
-    	
-//    	ICompilationUnit unit = JPAEditorUtil.getCompilationUnit(jpt);
-    	if(unit.isWorkingCopy()){
-    		System.out.println("baaaaaaa go");
-    		try {
+
+		if (unit.isWorkingCopy()) {
+			try {
 				unit.discardWorkingCopy();
 			} catch (JavaModelException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-    	}
-    }
-    	
-    public void deleteEl(IDeleteContext context){
-    	super.delete(context);
-    }
-	
-    @Override
+		}
+
+	}
+
+	public void deleteEl(IDeleteContext context) {
+		super.delete(context);
+	}
+
+	@Override
 	protected void deleteBusinessObject(Object bo) {
-    	PersistentType jpt = null;
+		PersistentType jpt = null;
 		if (bo instanceof PersistentType) {
 			jpt = (PersistentType) bo;
-			
-		
+
 			JpaProject jpaProject = jpt.getJpaProject();
 			String name = jpt.getName();
-			
-			JpaArtifactFactory.instance().deletePersistentTypeFromORMXml(jpaProject, jpt);
-//			JpaArtifactFactory.instance().forceSaveEntityClass(jpt, getFeatureProvider());
-			JpaArtifactFactory.instance().deleteEntityClass(jpt, getFeatureProvider());
-			if (! JpaPreferences.getDiscoverAnnotatedClasses(jpt.getJpaProject().getProject())) {
-				JPAEditorUtil.createUnregisterEntityFromXMLJob(jpaProject, name);
+
+			JpaArtifactFactory.instance().deletePersistentTypeFromORMXml(
+					jpaProject, jpt);
+			JpaArtifactFactory.instance().deleteEntityClass(jpt,
+					getFeatureProvider());
+			if (!JpaPreferences.getDiscoverAnnotatedClasses(jpt.getJpaProject()
+					.getProject())) {
+				JPAEditorUtil
+						.createUnregisterEntityFromXMLJob(jpaProject, name);
 			}
-						
-		} 	
-    }
+
+		}
+	}
 
 	@Override
 	public IJPAEditorFeatureProvider getFeatureProvider() {
-		return (IJPAEditorFeatureProvider)super.getFeatureProvider();
-	}		    
-	
+		return (IJPAEditorFeatureProvider) super.getFeatureProvider();
+	}
+
 	@Override
 	protected boolean getUserDecision(IDeleteContext context) {
-		String msg = "";  //$NON-NLS-1$
+		String msg = ""; //$NON-NLS-1$
 		IMultiDeleteInfo multiDeleteInfo = context.getMultiDeleteInfo();
 		if (multiDeleteInfo != null) {
 			msg = JPAEditorMessages.DeleteJPAEntityFeature_deleteJPAEntitiesQuestion;
 		} else {
 			if (entityClassName != null && entityClassName.length() > 0) {
-				msg = MessageFormat.format(JPAEditorMessages.DeleteJPAEntityFeature_deleteJPAEntityQuestion, entityName, entityClassName);
+				msg = MessageFormat
+						.format(JPAEditorMessages.DeleteJPAEntityFeature_deleteJPAEntityQuestion,
+								entityName, entityClassName);
 			}
 		}
-		return MessageDialog.openQuestion(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+		return MessageDialog.openQuestion(PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getShell(),
 				JPAEditorMessages.DeleteFeature_deleteConfirm, msg);
 	}
 
-	
-	
 }

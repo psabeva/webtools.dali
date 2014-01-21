@@ -29,8 +29,8 @@ public class IsARelation {
 	public final static String IS_A_CONNECTION_PROP_KEY = "is_is_a_connection";	//$NON-NLS-1$
 	
 	
-	protected PersistentType subclass;
-	protected PersistentType superclass;
+	private PersistentType subclass;
+	private PersistentType superclass;
 	
 	public IsARelation(PersistentType subclass, 
 					   PersistentType superclass) {
@@ -99,6 +99,14 @@ public class IsARelation {
 	@Override
 	public int hashCode() {
 		return getId().hashCode();
+	}
+
+	public void setSubclass(PersistentType subclass) {
+		this.subclass = subclass;
+	}
+
+	public void setSuperclass(PersistentType superclass) {
+		this.superclass = superclass;
 	}
 
 }
